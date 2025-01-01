@@ -125,3 +125,10 @@ ALTER TABLE employees
 ALTER COLUMN salary SET DATA TYPE INTEGER USING salary::INTEGER;
 ```
 
+## Create New Types
+
+To create a new sex_type that contains two distinct values 'M' and 'F', use the following:
+
+```
+CREATE TYPE sex_type AS enum ('M', 'F');
+```
