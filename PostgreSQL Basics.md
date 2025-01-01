@@ -48,3 +48,19 @@ CREATE TABLE customer(
 );
 ```
 
+# Data Types
+
+## Character Types
+
+Some common character types used in Postgres:
+ - CHAR(n)
+ - VARCHAR
+ - VARCHAR(n)
+ - TEXT
+
+Differences:
+ - CHAR(n) represents **fixed-length character**. Stores a fixed-length string of n characters. If the input string is shorter than n, it is padded with spaces to match the length.
+ - VARCHAR(n) represents **variable-length character with limit**. Stores a variable-length string with a maximum length of n. Unlike CHAR(n), it does not pad with spaces.
+ - VARCHAR represents **Unlimited variable-length character**. Same as TEXT, except that it allows you to specify constraints like CHECK(length < 255).
+ - TEXT represents unlimited text. Stores variable-length strings with no explicit length limit.
+
