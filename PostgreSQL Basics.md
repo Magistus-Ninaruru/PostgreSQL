@@ -107,7 +107,10 @@ Some common numeric types used in Postgres:
  - INTEGER (= INT, includes INT, BIGINT and SMALLINT)
  - Floats (this includes DECIMAL = NUMERIC, REAL which has 6 places of precision, DOUBLE PRECISION which has 15 places of precision, and FLOAT = DOUBLE)
  - BOOLEAN (TRUE, FALSE, NULL)
- - DATE/TIME (DATE: '2014-12-24', TIME: TIME [ (precision) ] [ WITHOUT TIME ZONE ] or TIME [ (precision) ] WITH TIME ZONE, TIMESTAMP: '2024-01-02 14:30:00', INTERVAL: INTERVAL [ fields ] [ (precision) ], e.g. '1 year 2 months 3 days 4 hours 5 minutes 6.789 seconds')
+ - DATE/TIME (DATE: '2014-12-24', TIME: TIME [ (precision) ] [ WITHOUT TIME ZONE ] or TIME [ (precision) ] WITH TIME ZONE, TIMESTAMP: '2024-01-02 14:30:00', INTERVAL: INTERVAL [ fields ] [ (precision) ], e.g. '1 year 2 months 3 days 4 hours 5 minutes 6.789 seconds') Note: we can use keyword **EXTRACT** to obtain the year, month and day from the **DATE** type value. The general syntax is:
+   ```
+   EXTRACT(field FROM source)
+   ```
 
 ## Change Data Types for Columns
 
@@ -269,7 +272,7 @@ FROM product AS p
 CROSS JOIN product_type AS pt;
 ```
 
-## SELF JOIN
+## Self JOIN
 
 Purpose: Joins a table to itself. Often used for hierarchical or relationship-based queries.
 
@@ -277,32 +280,47 @@ Purpose: Joins a table to itself. Often used for hierarchical or relationship-ba
 
 Purpose: Performs a JOIN based on columns with the *same name* in both tables.
 
+## Theta Join and Equi Join
 
+A **theta join** is a join operation in SQL where the condition used to match rows between two tables includes comparison operators other than just equality (=).
 
+An **equi join** is a special case of a theta join where the condition used to match rows only involves equality (=). It is the most common type of join and is often referred to as just INNER JOIN.
 
+# UNION and INTERSECT
 
+## UNION
 
+Purpose: Combines the results of two or more queries into a single result set, *removing duplicates*. The syntax is as follow:
 
+```
+SELECT column_list FROM table1
+UNION
+SELECT column_list FROM table2;
+```
 
+If we want to keep duplicates, we can use **UNION ALL**:
 
+```
+SELECT column_list FROM table1
+UNION ALL
+SELECT column_list FROM table2;
+```
 
+## INTERSECT
 
+Purpose: Returns only the rows that are common in the result sets of two queries. Syntax:
 
+```
+SELECT column_list FROM table1
+INTERSECT
+SELECT column_list FROM table2;
+```
 
+Similarly, if we want to keep duplicates, we could use **INTERSECT ALL**:
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```
+SELECT column_list FROM table1
+INTERSECT ALL
+SELECT column_list FROM table2;
+```
 
