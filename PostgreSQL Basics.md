@@ -221,3 +221,13 @@ The index can be dropped by
 DROP INDEX IF EXISTS idx_employees_lastname;
 ```
 
+# Strings
+
+## String Concatenation
+
+In PostgreSQL, we can concatenate strings using the following methods:
+ - ||
+   ```
+   string1 || string2 || string3
+   ```
+ - 
