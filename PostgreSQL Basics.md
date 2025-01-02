@@ -230,4 +230,79 @@ In PostgreSQL, we can concatenate strings using the following methods:
    ```
    string1 || string2 || string3
    ```
- - 
+ - CONCAT
+   ```
+   CONCAT(string1, string2, string3, ...)
+   ```
+ - CONCAT_WS (concatenate with separator)
+   ```
+   CONCAT_WS(separator, string1, string2, ...)
+   ```
+
+# Joins
+
+## INNER JOIN (JOIN)
+
+Purpose: Returns rows only when there is a match in both tables (keywords INNER JOIN = JOIN).
+
+## OUTER JOIN
+
+### LEFT JOIN (LEFT OUTER JOIN)
+
+Purpose: Returns all rows from the left table and matched rows from the right table. If no match, NULL values are returned for the right table.
+
+### RIGHT JOIN (RIGHT OUTER JOIN)
+
+Purpose: Returns all rows from the right table and matched rows from the left table. If no match, NULL values are returned for the left table.
+
+### FULL JOIN (FULL OUTER JOIN)
+
+Purpose: Returns all rows when there is a match in either table. Rows with no match in the other table will have NULL values.
+
+## CROSS JOIN
+
+Purpose: Returns the Cartesian product of the two tables, i.e., all possible combinations. Example:
+
+```
+SELECT p.name AS product_name, pt.name AS product_type
+FROM product AS p
+CROSS JOIN product_type AS pt;
+```
+
+## SELF JOIN
+
+Purpose: Joins a table to itself. Often used for hierarchical or relationship-based queries.
+
+## NATURAL JOIN
+
+Purpose: Performs a JOIN based on columns with the *same name* in both tables.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
