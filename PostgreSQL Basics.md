@@ -125,10 +125,34 @@ ALTER TABLE employees
 ALTER COLUMN salary SET DATA TYPE INTEGER USING salary::INTEGER;
 ```
 
+## Change the Name of Columns
+
+If we would like to rename a column, follow the example:
+
+```
+ALTER TABLE sales_item RENAME COLUMN day_of_week TO weekday;
+```
+
 ## Create New Types
 
 To create a new sex_type that contains two distinct values 'M' and 'F', use the following:
 
 ```
 CREATE TYPE sex_type AS enum ('M', 'F');
+```
+
+## Add a New Column
+
+To add a new column with a specific data type, use the following example:
+
+```
+ALTER TABLE sales_item ADD day_of_week VARCHAR(8);
+```
+
+## Drop a Column
+
+To drop an existed column, use the following syntax:
+
+```
+ALTER TABLE sales_item DROP COLUMN weekday;
 ```
