@@ -116,6 +116,9 @@ To change the data type for a specified column, use the following syntax:
 ```
 ALTER TABLE table_name
 ALTER COLUMN column_name SET DATA TYPE new_data_type [ USING expression ];
+-- this is the same as
+ALTER TABLE table_name
+ALTER COLUMN column_name TYPE new_data_type [ USING expression ];
 ```
 
 If the new data type is not directly compatible, you must provide a conversion expression (**USING expression**) using the USING clause. For example:
