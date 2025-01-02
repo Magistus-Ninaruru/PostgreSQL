@@ -141,6 +141,12 @@ To create a new sex_type that contains two distinct values 'M' and 'F', use the 
 CREATE TYPE sex_type AS enum ('M', 'F');
 ```
 
+When we are creating a new type, we should first drop the existing type of the same name, otherwise an error would occur.
+
+```
+DROP TYPE IF EXISTS sex_type CASCADE;
+```
+
 ## Add a New Column
 
 To add a new column with a specific data type, use the following example:
@@ -156,3 +162,59 @@ To drop an existed column, use the following syntax:
 ```
 ALTER TABLE sales_item DROP COLUMN weekday;
 ```
+
+## TRUNCATE a Table
+
+**TRUNCATE** keyword removes all rows in one operation. The basic syntax is:
+
+```
+TRUNCATE [ TABLE ] table_name [ CASCADE | RESTRICT ];
+```
+
+Note: there are two keywords CASCADE | RESTRICT:
+ - CASCADE: Automatically truncates all tables that have foreign key dependencies on the specified table.
+ - RESTRICT (default): Raises an error if any table has foreign key dependencies.
+
+# Index
+
+## Create an Index
+
+The basic syntax for creating an index is:
+
+```
+CREATE INDEX index_name
+    ON table_name (column_name);
+```
+
+More specifically, we could create a b-tree index (also the default type) using
+
+```
+CREATE INDEX index_name
+    ON table_name USING BTREE (column_name);
+```
+
+or hash index using
+
+```
+CREATE INDEX index_name
+    ON table_name USING HASH (column_name);
+```
+
+## Check an Index
+
+We can check the existing index in a table using the following example:
+
+```
+SELECT indexname, indexdef
+    FROM pg_indexes
+    WHERE tablename = 'employees';
+```
+
+## Drop an Index
+
+The index can be dropped by
+
+```
+DROP INDEX IF EXISTS idx_employees_lastname;
+```
+
