@@ -242,6 +242,81 @@ In PostgreSQL, we can concatenate strings using the following methods:
    CONCAT_WS(separator, string1, string2, ...)
    ```
 
+## Pattern Matching
+
+### SIMILAR TO
+
+In PostgreSQL, **SIMILAR TO** is a pattern matching operator that works similarly to LIKE but supports regular expressions using SQL standard syntax instead of PostgreSQL's POSIX-style regular expressions (used in ~ or ~*). The syntax is as follow:
+
+```
+expression SIMILAR TO pattern
+```
+
+Wildcards:
+ - % – Matches zero or more characters (same as LIKE).
+ - _ – Matches exactly one character (same as LIKE).
+
+Character Classes:
+ - [abc] – Matches any one character from the list (e.g., a, b, or c).
+ - [a-z] – Matches any one character in the range a to z.
+
+Quantifiers:
+ - + – Matches one or more occurrences of the preceding element.
+ - * – Matches zero or more occurrences.
+ - ? – Matches zero or one occurrence.
+
+For example:
+
+```
+SELECT first_name, last_name
+FROM customer
+WHERE first_name SIMILAR TO 'M%';
+-- above is the same as
+SELECT first_name, last_name
+FROM customer
+WHERE first_name SIMILAR TO 'M[a-z]*';
+```
+
+### LIKE
+
+In PostgreSQL, **LIKE** is a pattern matching operator used to filter rows based on partial string matches. It is commonly used with WHERE clauses to search for patterns in text data.
+
+Basic syntax:
+
+```
+expression LIKE pattern
+-- or we can use negation
+expression NOT LIKE pattern
+```
+
+Wildcards:
+ - %: Matches zero or more characters.
+ - _: Matches exactly one character.
+ - []: Matches any single character in the list (not standard). E.g. '[aeiou]%'
+ - [^]: Matches any single character not in the list (not standard). E.g. '[^aeiou]%'
+
+Example:
+
+```
+SELECT first_name || ' ' || last_name
+FROM customer
+WHERE last_name LIKE '%oo%';
+```
+
+### POSIX Regex Alternative
+
+For more complex patterns, use POSIX regular expressions:
+ - Match Case-Sensitive:
+   ```
+   SELECT 'hello123' ~ '[a-z]+[0-9]+' AS result;
+   -- Output: TRUE
+   ```
+ - Match Case-Insensitive:
+   ```
+   SELECT 'HELLO123' ~* '[a-z]+[0-9]+' AS result;
+   -- Output: TRUE
+   ```
+
 # Joins
 
 ## INNER JOIN (JOIN)
