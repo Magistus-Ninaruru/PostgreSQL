@@ -414,6 +414,10 @@ FROM table_name
 WHERE condition;
 ```
 
+Note: there are some clauses that could not be used to create a view, they are listed as follows:
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/view1.png)
+
 ## Modify a View
 
 The syntax for modifying a view:
@@ -455,4 +459,3 @@ REFRESH MATERIALIZED VIEW mv_high_salary;
 Key difference:
  - Regular Views: Always reflect the latest data.
  - Materialized Views: Store data physically and need manual updates (via REFRESH) to reflect changes in the underlying tables.
-
