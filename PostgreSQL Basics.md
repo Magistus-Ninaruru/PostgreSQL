@@ -399,3 +399,60 @@ INTERSECT ALL
 SELECT column_list FROM table2;
 ```
 
+# Views
+
+In PostgreSQL, a view is a virtual table that is based on the result of a SQL query. Unlike physical tables, views do not store data themselves. Instead, they dynamically display data from one or more tables whenever they are queried.
+
+## Create a View
+
+The syntax for creating a view:
+
+```
+CREATE VIEW view_name AS
+SELECT column1, column2, ...
+FROM table_name
+WHERE condition;
+```
+
+## Modify a View
+
+The syntax for modifying a view:
+
+```
+CREATE OR REPLACE VIEW high_salary_employees AS
+SELECT id, name, salary, department
+FROM employees
+WHERE salary > 80000;
+```
+
+## Delete a View
+
+The syntax for deleting a view:
+
+```
+DROP VIEW high_salary_employees;
+```
+
+## Materialized Views
+
+In addition to regular views, PostgreSQL supports **materialized views** that store the query result physically. They are useful for performance optimization when query results are expensive to compute.
+
+Basic syntax for creating a materialized view:
+
+```
+CREATE MATERIALIZED VIEW mv_high_salary AS
+SELECT id, name, salary
+FROM employees
+WHERE salary > 80000;
+```
+
+We could also refresh this materialized view using
+
+```
+REFRESH MATERIALIZED VIEW mv_high_salary;
+```
+
+Key difference:
+ - Regular Views: Always reflect the latest data.
+ - Materialized Views: Store data physically and need manual updates (via REFRESH) to reflect changes in the underlying tables.
+
