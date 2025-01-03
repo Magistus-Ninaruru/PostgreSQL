@@ -22,3 +22,18 @@ AS
 LANGUAGE sql;
 ```
 
+The function does not need to have parameters to pass to it, nor needs to return anything (in this case, it actually returns *void*).
+
+```
+-- if the state of the sales person is null, we set it to 'PA'
+CREATE OR REPLACE FUNCTION fn_update_employee_state()
+RETURNS void -- do not need to return anything, so write void
+AS
+$$
+    UPDATE sales_person
+    SET state = 'PA'
+    WHERE state IS NULL
+$$
+LANGUAGE SQL;
+```
+
