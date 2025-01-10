@@ -101,25 +101,34 @@ Sometimes, we can have recursive (or self-referencing) relationships. For exampl
 
 ![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/self-referencing.png)
 
+## Weak Entity
 
+A **weak entity set** is an entity set that:
+ - Depends on a Strong Entity: A weak entity set cannot exist on its own. It relies on a strong entity set (also called the "owner" entity) for identification.
+ - Lacks a Primary Key: Weak entities do not have enough attributes to form a unique primary key on their own. Instead, they use the primary key of the associated strong entity combined with their own discriminator (partial key) for uniqueness.
+ - Must have total participation in the relationship with the owner entity.
 
+For example:
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/weak_entity.png)
 
+In the above example, each family member is uniquely identified by a combination of EmployeeName (the PK from its owner identity) and Name (its discriminator).
 
+## Specialisation/Inheritance
 
+A **subclass** of an entity set A is a set of entities:
+ - with all attributes of A, plus (usually) its own attributes
+ - that is involved in all of A's relationships, plus its own
+ - i.e., subclass inherits attributes and relationships from its parent
 
+Properties of subclasses:
+ - **overlapping** or **disjoint** (can an entity be in multiple subclasses?)
+ - **total** or **partial** (does every entity have to also be in a subclass?)
+ - A class/subclass relationship is often called an IS-A (or IS-AN) relationship because of the way we refer to the concept. We say a DOCTOR is a PERSON ...
 
+Example:
 
-
-
-
-
-
-
-
-
-
-
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/subclass.png)
 
 
 
