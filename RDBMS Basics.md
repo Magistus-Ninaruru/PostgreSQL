@@ -87,11 +87,19 @@ In a Student table, {StudentID, Name} is a super key, though only StudentID is n
  - **Cardinality** = # associated entities on each side of the relationship (1: 1, 1: M, M: N)
  - **Participation** = must every entity be in the relationship (total participation; partial participation)
 
+Cardinality example:
+
+For State (S) and City, one state contains many cities but one city is only contained in a single state. So the cardinality is 1: M. 1 is represented by a single arrow.
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/cardinality_example.png)
+
 We use thick line to represent total participation:
 
 ![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/relationship_participation.png)
 
+Sometimes, we can have recursive (or self-referencing) relationships. For example:
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/self-referencing.png)
 
 
 
