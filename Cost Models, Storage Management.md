@@ -83,7 +83,7 @@ Rel r = openRelation(db,"Employee");
 Page buffer = malloc(PAGESIZE*sizeof(char));
 for (int i = 0; i < r->npages; i++) {
    PageId pid = r->start+i;
-   get_page(db, pid, buffer);
+   get_page(db, pid, buffer); // read the page into the buffer
    for each tuple in buffer {
       get tuple data and extract name
       add (name) to result tuples
@@ -91,44 +91,101 @@ for (int i = 0; i < r->npages; i++) {
 }
 ```
 
+Two important functions *get_page* and *put_page*:
 
+```
+// assume that Page = byte[PageSize]
+// assume that PageId = block number in file
 
+// read page from file into memory buffer
+void get_page(DB db, PageId p, Page buf) {
+   lseek(db->fd, p*PAGESIZE, SEEK_SET); // moves the fd to the beginning of that page
+   read(db->fd, buf, PAGESIZE);
+}
 
+// write page from memory buffer to file
+void put_page(DB db, PageId p, Page buf) {
+   lseek(db->fd, p*PAGESIZE, SEEK_SET);
+   write(db->fd, buf, PAGESIZE);
+}
+```
 
+### Multiple File DBMS
 
+Most DBMSs don't use a single large file for all data. The structure of multi-file disk manager looks like this:
 
+```
+| NameMap |
+| table 1 pages | (add more)...
+| table 2 pages | (add more)...
+| table 3 pages | (add more)...
+...
+```
 
+Structure of PageId for data pages in such systems ...
 
+If system uses one file per table, PageId contains:
+ - relation indentifier (which can be mapped to filename)
+ - page number (to identify page within the file)
 
+If system uses several files per table, PageId contains:
+ - relation identifier
+ - file identifier (combined with relid, gives filename) (because there could be multiple files per table, we need to specify which file the page belongs to)
+ - page number (to identify page within the file)
 
+**PostgreSQL Storage Manager**
 
+PostgreSQL uses the following file organisation:
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/file_organisation.png)
 
+PGDATA is the top-level directory (root directory) of a PostgreSQL database cluster. Contains all the necessary files and subdirectories for managing the database cluster. Within this directory:
+ - **base**: Stores the data files for all the databases in the cluster.
+ - **global**: Contains cluster-wide tables and metadata shared across all databases in the cluster.
+ - **pg_wal (Write-Ahead Logs)**: Stores WAL (Write-Ahead Log) files, which are critical for database durability and recovery. Log files are named sequentially, e.g., 000000010000000000000001.
+ - **pg_tblspc**: Stores symbolic links (symlink1, symlink2) to tablespaces.
 
+PostgreSQL has two basic kinds of files (PostgreSQL identifies relation files via their OIDs):
+ - **heap files** containing data (tuples)
+ - **index files** containing index entries
 
+**File Descriptor Pool**
 
+Unix has limits on the number of concurrently open files. When a file is needed, check the pool first before attempting to open a new file. Open files are referenced via:
 
+```
+typedef int File;
+```
 
+A *File* is an index into a table of "virtual file descriptors".
 
+**Virtual File Descriptors (Vfds)**
 
+Vfd typically contains:
+ - fd: the actual file descriptor
+ - pos: the current position in the file (offset)
+ - and many more...
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/vfd.png)
 
+PostgreSQL stores each table
+ - in the directory *PGDATA/pg_database.oid*
+ - often in multiple data files (aka forks)
 
+```
+Oid      | table data pages |
+Oid.1    | more table data pages |
+Oid_fsm  | free space map |
+Oid_vm   | visibility map |
+```
 
+Free space map   (Oid_fsm):
+ - indicates where free space is in data pages
+ - "free" space is only free after **VACUUM** (DELETE simply marks tuples as no longer in use xmax)
 
-
-
-
-
-
-
-
-
-
-
-
-
-
+Visibility map   (Oid_vm):
+ - indicates pages where all tuples are "visible" (visible = accessible to all currently active transactions)
+ - such pages can be ignored by VACUUM
 
 
 
