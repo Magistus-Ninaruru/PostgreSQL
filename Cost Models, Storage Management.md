@@ -187,6 +187,218 @@ Visibility map   (Oid_vm):
  - indicates pages where all tuples are "visible" (visible = accessible to all currently active transactions)
  - such pages can be ignored by VACUUM
 
+## Buffer Pool
+
+Aim of buffer pool: hold pages read from database files, for possible re-use.
+
+Buffer pool operations:   (both take single PageID argument)
+ - *request_page(pid)*: Request a page based on its pid and return the bufID in the buffer pool. If the requested page is already in the buffer pool, then no need to read it from disk again.
+ - *release_page(pid)*: Mark the page as not being used (i.e. pin count --).
+ - *mark_page*: Set dirty bit on a specified page.
+ - *flush_page*: Write the specified page to disk.
+
+Buffer pool data structures:
+
+```
+Page frames[NBUFS]         // frames is an array of pages
+FrameData directory[NBUFS] // directory stores the metadata of pages
+Page is byte[BUFSIZE]      // a page is just an array of bytes
+```
+
+The buffer pool looks like this:
+
+```
+directory    | info about frame 0 | info about frame 1 | ...
+                       [0]                  [1]
+frames       |   data or empty    |   data or empty    | ...
+                       [0]                  [1]
+```
+
+For each frame, we need to know:   (FrameData)
+ - which Page it contains, or whether empty/free
+ - whether it has been modified since loading (**dirty bit**)
+ - how many transactions are currently using it (**pin count**)
+ - time-stamp for most recent access (assists with replacement)
+
+How scans are performed without Buffer Pool:
+
+```
+Buffer buf;
+int N = numberOfBlocks(Rel);
+for (i = 0; i < N; i++) {
+   pageID = makePageID(db,Rel,i);
+   getBlock(pageID, buf);
+   for (j = 0; j < nTuples(buf); j++)
+      process(buf, j)
+}
+```
+
+Requires N page reads. If we read it again, N page reads.
+
+How scans are performed with Buffer Pool:
+
+```
+Buffer buf;
+int N = numberOfBlocks(Rel);
+for (i = 0; i < N; i++) {
+   pageID = makePageID(db,Rel,i);
+   bufID = request_page(pageID);
+   buf = frames[bufID]
+   for (j = 0; j < nTuples(buf); j++)
+      process(buf, j)
+   release_page(pageID);
+}
+```
+
+Requires N page reads on the first pass. If we read it again, 0 ≤ page reads ≤ N, because there may be some pages already loaded in the buffer pool.
+
+Evicting a page ... 
+ - find frame(s) preferably satisfying
+    - pin count = 0   (i.e. nobody using it)
+    - dirty bit = 0   (not modified)
+ - if selected frame was modified, flush frame to disk
+ - flag directory entry as "frame empty"
+ - If multiple frames can potentially be released, we need a policy to decide which is best choice
+
+**Page Replacement Policies**
+
+Several schemes are commonly in use:
+ - **Least Recently Used (LRU)** (items in cache are ordered by their recent usage)
+ - **Most Recently Used (MRU)** (items in cache are ordered by their recent usage)
+ - **First in First Out (FIFO)** (items in cache are ordered by their insertion time)
+ - **Random**
+
+Note: LRU / MRU require knowledge of when pages were last accessed. How to keep track of "last access" time?
+ - Timestamp: maintain a timestamp for each page
+ - Linked list: the most recently accessed page is moved to the *front* of the list
+
+**Sequential flooding**: suppose the buffer pool has n frames, we perform a sequential scan, LRU, n < b, then all scans costs b reads.
+
+**Effect of Buffer Management**
+
+Consider a query to find customers who are also employees:
+
+```
+select c.name
+from   Customer c, Employee e
+where  c.ssn = e.ssn;
+```
+
+This might be implemented inside the DBMS via **nested loops**:
+
+```
+for each tuple t1 in Customer {
+    for each tuple t2 in Employee {
+        if (t1.ssn == t2.ssn)
+            append (t1.name) to result set
+    }
+}
+```
+
+In terms of page-level operations, the algorithm looks like:
+
+```
+Rel rC = openRelation("Customer");
+Rel rE = openRelation("Employee");
+for (int i = 0; i < nPages(rC); i++) {
+    PageID pid1 = makePageID(db,rC,i);
+    Page p1 = request_page(pid1);
+    for (int j = 0; j < nPages(rE); j++) {
+        PageID pid2 = makePageID(db,rE,j);
+        Page p2 = request_page(pid2);
+        // compare all pairs of tuples from p1,p2
+        // construct solution set from matching pairs
+        release_page(pid2);
+    }
+    release_page(pid1);
+}
+```
+
+## Page/Tuple Management
+
+Important terminologies:
+ - *Record* = sequence of bytes stored on disk (data for one tuple)
+ - *Tuple* = "interpretable" version of a *Record* in memory
+ - *TupleId* = index of record within page = *tid*
+ - *RecordId* = *(PageId, TupleId)* = *rid*
+
+### Page Format
+
+For **fixed-length records**, use **record slots**.
+ - insert: place new record in first available slot
+ - delete: mark slot as free, or set *xmax*
+
+Important: xmin/xmax are fields used to manage tuple/record visibility in MVCC
+ - xmin: the transaction id of the transaction that *inserted* the tuple/record
+ - xmax: the transaction id of the transaction that *deleted/update* the tuple/record
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/record_slot.png)
+
+For **variable-length records**, must use **record directory**, where directory[i] gives location within page of i th record.
+
+An important aspect of using record directory:
+ - location of tuple within page can change, tuple index does not change (we refer to tuple index within directory as   *TupleId tid*)
+
+Issue with variable-length records
+ - managing space withing the page (esp. after deletions)
+ - recording used and unused regions of the page
+
+Possibilities for handling free-space within block:
+ - compacted (one region of free space)
+ - fragmented (distributed free space)
+
+In practice, a combination is useful:
+ - normally fragmented (cheap to maintain)
+ - compacted when needed (e.g. record won't fit)
+
+**Storage Utilisation**
+
+How many records can fit in a page? (denoted c = capacity)
+
+Depends on:
+ - page size ... typical values: 1KB, 2KB, 4KB, 8KB
+ - record size ... typical values: 64B, 200B, app-dependent
+ - page header data ... typically: 4B - 32B
+ - slot directory ... depends on how many records
+
+We typically consider average record size (R)
+ - Given c, *HeaderSize + c*SlotSize + c*R  ≤  PageSize*
+
+### Overflows
+
+Sometimes, it may not be possible to insert a record into a page:
+(1) no free-space fragment large enough
+(2) overall free-space in page is not large enough
+(3) the record is larger than the page
+(4) no more free directory slots in page
+
+Overflow pages for full buckets in a hashed file:
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/overflow1.png)
+
+Overflow file for very large records and BLOBs:
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/ov2.png)
+
+Note:
+ - The **BLOB** (**Binary Large Object**) data type is used in databases to store large amounts of binary data, such as images, videos, audio, and other multimedia files, as well as binary executables or encrypted data. It is designed to handle unstructured data that does not fit into traditional text or numeric data types.
+ - The record that is too large to fit in a data page stores metadata and a pointer to the overflow file, instead of actual data.
+ - **OV**: overflow flag **offset**: the offset in the overflow file **length**: the length of data stored in the ov file
+
+### PostgreSQL Page Representation
+
+PostgreSQL page layout:
+
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/page_layout.png)
+
+
+
+
+
+
+
+
+
 
 
 
