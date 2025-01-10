@@ -391,44 +391,25 @@ PostgreSQL page layout:
 
 ![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/page_layout.png)
 
+PostgreSQL has two kinds of pages:
+ - **heap pages** which contain tuples
+ - **index pages** which contain index entries
 
+Both kinds of pages have the same page layout. They both have similar page management mechanism. On important difference is that:
+ - index entries tend be smaller than tuples
+ - can typically fit more index entries per page
 
+**TOAST Files**
 
+Each data file has a corresponding **TOAST** (**The Oversized Attribute Storage Technique**) file (if needed):
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/TOAST.png)
 
+Key ideas:
+ - Tuples in data pages contain rids for long values.
+ - PostgreSQL has a size limit for rows (typically 8 KB, the page size), and TOAST is used to efficiently store and manage data values that *exceed this limit*, such as large strings, arrays, or binary objects.
+ - PostgreSQL first tries to compress large data values using techniques like pglz. If the compressed value fits within the row size limit, it's stored inline. If the compressed data still doesn't fit, PostgreSQL moves the oversized value to a separate TOAST table. The original row stores only a pointer to the external TOAST data.
 
+**Differences Between TOAST and BLOB**
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/toast_and_blob.png)
