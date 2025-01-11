@@ -130,50 +130,126 @@ Example:
 
 ![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/subclass.png)
 
+## Relational Data Model
 
+Difference between entity relationship model (ERM) and relational data model:
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/erm_relational_diff.png)
 
+**Terminologies**
 
+A **relation schema** (denoted R,S,T,...) has:
+ - a name (unique within a given database)
+ - a set of attributes (which can be viewed as column headings)
+ - e.g., STUDENT(Name, Ssn, Home_phone, Address, Office_phone, Age, Gpa)
+ - or generally, R (A1, A2, …, An)
+ - Sometimes R can be written as: R(A1:D1, A2:D2, ... An:Dn), where Ai denotes an attribute in R, Di denotes the domain of Ai
 
+Each **attribute** (denoted A,B,... or a1,a2,...) has:
+ - a name (unique within a given relation)
+ - an associated domain (set of allowed values)
+ - e.g., STUDENT(Name: string, Ssn: string, …, Age: integer, Gpa: real)
 
+A **relation** r of the relation schema R(A1, A2, ... , An) is denoted by r(R) where r(R) is a set of n-tuples, i.e., r = {t1, t2, ... , tm}. Each tuple t is an ordered list of values t = <v1, v2, v3 ..., vn> where each vi is an element
+of dom(Ai).
 
+### Integrity Constraints
 
+**Constraints Applying to Single Relations**
+ - **Domain Constraints**
+    - “No employee is younger than 15 or older than 80” -> dom(Age) = > 15 or < 80
+ - **Superkeys and keys**
+    - “Employees with the same tax code are identical”, in other words, the values of any given two employees’ tax code attribute are different
+    - t1[taxCode] ≠ t2[taxCode]
+ - **NULL value constraint**
+    - ”Employee name cannot be NULL” -> Add *NOT NULL* in table definition
 
+**Constraints Applying to Many Relations**
+ - **Entity Integrity Constraint**
+    - No primary key value can be NULL
+    - Applies to a single relation, but important in the context of multiple relations
+ - **Referential Integrity Constraint**
+    - Between two relations, a tuple in one relation that refer to another relation must refer to an existing tuple in that relation
+    - For example, Account.branchName must refer to an existing tuple (i.e., branch name) in Branch.branchName
 
+**Integrity Violations of Database Operations and How to Solve Them**
 
+<ins>Primary Key Constraint</ins>
 
+Violation: Attempting to insert or update a tuple with a duplicate primary key value or a NULL primary key.
 
+Actions:
+ - Ensure the primary key value is unique and not NULL before the operation.
+ - Modify the incoming data to use a unique value or leave the primary key unchanged during an update.
+ - For batch inserts, identify and remove duplicates in the input data.
 
+<ins>Foreign Key Constraint</ins>
 
+Violation:
+ - Inserting a tuple with a foreign key value that does not match a primary key in the referenced table.
+ - Deleting a tuple that is referenced by a foreign key in another table.
 
+Actions:
 
+For insertion: Insert the corresponding primary key value into the referenced table before performing the insert.
 
+For deletion:
+ - Use ON DELETE CASCADE if cascading deletion is acceptable.
+ - Use ON DELETE SET NULL or ON DELETE SET DEFAULT if allowed by the schema.
+ - Prevent deletion if the referenced tuple cannot be modified or removed.
 
+For updates: Similar to deletions, ensure the foreign key in dependent tuples is updated accordingly.
 
+**ON DELETE**: In relational databases, ON DELETE actions are used to define the behavior of a foreign key when a referenced row in the parent table is deleted.
 
+```
+ON DELETE CASCADE
+-- When a row in the parent table is deleted,
+-- all rows in the child table referencing that row are also automatically deleted.
 
+ON DELETE SET NULL
+-- When a row in the parent table is deleted,
+-- all foreign key references in the child table are set to NULL.
 
+ON DELETE SET DEFAULT
+-- When a row in the parent table is deleted,
+-- all foreign key references in the child table are set to a default value specified in the column definition.
+```
 
+Example usage:
 
+```
+CREATE TABLE Department (
+    Dept_ID INT PRIMARY KEY,
+    Name VARCHAR(50)
+);
 
+CREATE TABLE Employee (
+    Emp_ID INT PRIMARY KEY,
+    Name VARCHAR(50),
+    Dept_ID INT,
+    FOREIGN KEY (Dept_ID) REFERENCES Department(Dept_ID)
+    ON DELETE CASCADE
+);
+```
 
+In the above case, if all apartments with Dept_ID = 1 are deleted from Department, then all employees with Dept_ID = 1 are also deleted accordingly from table Employee.
 
+<ins>Not Null Constraint</ins>
 
+Violation: Inserting or updating a tuple with a NULL value in a column that has a NOT NULL constraint.
 
+Actions:
+ - Provide a valid, non-NULL value for the constrained column.
+ - Update the schema to allow NULL values if appropriate (not recommended without careful consideration).
 
+<ins>Referential Integrity Constraint</ins>
 
+Violation: Performing an operation that leaves related data inconsistent.
 
-
-
-
-
-
-
-
-
-
-
-
+Actions:
+ - Use cascading operations like ON UPDATE CASCADE or ON DELETE CASCADE to maintain consistency.
+ - Modify the dependent tuples to align with changes in the referenced tuples.
 
 
 
