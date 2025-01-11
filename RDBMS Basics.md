@@ -251,56 +251,81 @@ Actions:
  - Use cascading operations like ON UPDATE CASCADE or ON DELETE CASCADE to maintain consistency.
  - Modify the dependent tuples to align with changes in the referenced tuples.
 
+## Mapping ER Diagram to Relational Schema
 
+**Mapping many:many Relationship Types (m: m)**
 
+Rule: for A m: m B, create a relation C that include the PKs of both A and B. Example:
 
+STUDENT (<ins>studno</ins>, given_name, family_name) 
 
+COURSE (<ins>courseno</ins>, subject, equip)
 
+(One student can enroll 0 or many courses, one course can be enrolled by 0 or many students)
 
+ENROL (<ins>studno</ins>, <ins>courseno</ins>, lab_mark, exam_mark)
 
+**Mapping many: one Relationship Types (m: 1)**
 
+Rule: given E1 at the ‘many’ end of relationship and E2 at the ‘one’ end of the relationship, add information of E2 to the relation for E1. Example:
 
+One student can only have one tutor, but one tutor could have 0 or many students.
 
+STUDENT(<ins>studno</ins>, givenname, familyname)
 
+can be extended to:
 
+STUDENT(<ins>studno</ins>, givenname, familyname, tutor, roomno, slot)
 
+Foreign Key STUDENT(tutor,roomno) references STAFF(name,roomno)
 
+Alternative rule: we can also create a new relation, using the PK of 'many' side as the primary key.
 
+**Mapping one: one Relationship Types (1: 1)**
 
+OPTION 1: Post the primary key of one of the entity types into the other entity type as a foreign key, including any relationship attributes with it (that is, the PK of either side could be the PK of the relation)
 
+OPTION 2: Merge the entity types together (but only when the participation from both sides are total, otherwise many NULLs)
 
+**Handling Multi-valued Attributes**
 
+For each multi-valued attribute of Ei, create a relation with the attributes:
 
+primary_key(Ei) U multi-valued attribute
 
+**Mapping Weak Entities to Relations**
 
+Example:
 
+CUSTOMER(<ins>name</ins>, address)
 
+ORDER(*orderid*, date) -> *orderid* is the discriminator
 
+Create the new relation as:
 
+CUS_ORDER(<ins>name</ins>, *orderid*, date)
 
+In general, **Primary key of identifying strong entity type U Discriminators of identifying weak entity types U Attributes of the weak entity type**
 
+**Translating of Hierarchies: Options**
 
+Three different approaches to mapping subclasses to tables:
 
+**ER style**
+ - superclass and subclasses entity become a separate table,
+ - containing attributes of subclass + FK to superclass table
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/hie1.png)
 
+**object-oriented**
+ - only subclasses entity become a separate table,
+ - inheriting all attributes from all superclasses
 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/hie2.png)
 
+**single table with nulls (all-in-one)**
+ - whole class hierarchy becomes one table,
+ - containing all attributes of all subclasses (null, if unused)
+ - a special attribute “type/class” can be used to indicate which subclass
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 
+![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/hie3.png)
