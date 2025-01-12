@@ -413,3 +413,22 @@ Key ideas:
 **Differences Between TOAST and BLOB**
 
 ![](https://github.com/Magistus-Ninaruru/PostgreSQL/blob/main/images/toast_and_blob.png)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
